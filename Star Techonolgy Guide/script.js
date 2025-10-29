@@ -13,6 +13,8 @@ document.addEventListener("DOMContentLoaded", () => {
             if (link) link.classList.add("active");
 
             setupGuidesSidebar();
+            // initialize any per-recipe electrolyzer controls that may be in the loaded content
+            initElectrolyzerConfigs();
         } catch (err) {
             content.innerHTML = "<p>Error loading page: " + (err && err.message ? err.message : err) + "</p>";
             console.error(err);
@@ -54,6 +56,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 itemLinks.forEach(a => a.classList.remove('active'));
                 link.classList.add('active');
             }
+                // initialize any per-recipe electrolyzer controls inside the newly-loaded fragment
+                initElectrolyzerConfigs();
         } catch (err) {
             console.error('Error loading page (delegated):', err);
             target.innerHTML = '<p>Error loading page: ' + (err && err.message ? err.message : err) + '</p>';
@@ -101,6 +105,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     contentArea.innerHTML = html;
                     itemLinks.forEach(a => a.classList.remove("active"));
                     link.classList.add("active");
+                    // initialize any per-recipe electrolyzer controls inside the right-hand content
+                    initElectrolyzerConfigs();
                 } catch (err) {
                     contentArea.innerHTML = "<p>Error loading guide section: " + (err && err.message ? err.message : err) + "</p>";
                     console.error(err);
@@ -109,3 +115,58 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+    // Initialize electrolyte/electrolyzer controls for recipes.
+    // Pages should include a container with class "electrolyzer-config" and a data-tiers attribute
+    // containing a JSON array like: [{"tier":"LV","sec":75},{"tier":"MV","sec":60}]
+    function initElectrolyzerConfigs() {
+        const containers = document.querySelectorAll('.electrolyzer-config');
+        containers.forEach(container => {
+            if (container.dataset.initialized) return;
+
+            let tiers = [];
+            const raw = container.getAttribute('data-tiers');
+            if (!raw) return;
+            try {
+                tiers = JSON.parse(raw);
+            } catch (e) {
+                console.error('electrolyzer-config: invalid JSON in data-tiers', e, raw);
+                return;
+            }
+
+            // build select (show only tier label — time is displayed by the surrounding markup)
+            const select = document.createElement('select');
+            select.className = 'electrolyzer-tier-select';
+            tiers.forEach((t, i) => {
+                const opt = document.createElement('option');
+                opt.value = t.tier;
+                opt.textContent = t.tier;
+                opt.dataset.sec = t.sec;
+                if (i === 0) opt.selected = true;
+                select.appendChild(opt);
+            });
+
+            // find a nearby time target (prefer within the same paragraph)
+            let timeTarget = null;
+            const para = container.closest('p');
+            if (para) timeTarget = para.querySelector('.electrolyzer-time');
+            // fallback: search document
+            if (!timeTarget) timeTarget = document.querySelector('.electrolyzer-time');
+
+            // set initial time if target exists
+            if (timeTarget && tiers[0]) timeTarget.textContent = tiers[0].sec;
+
+            select.addEventListener('change', () => {
+                const sec = select.selectedOptions[0].dataset.sec;
+                if (timeTarget) timeTarget.textContent = sec;
+            });
+
+            // empty container and append select only
+            container.innerHTML = '';
+            container.appendChild(select);
+
+            container.dataset.initialized = '1';
+        });
+    }
+
+    // initialize any controls in the static content at page load
+    initElectrolyzerConfigs();
