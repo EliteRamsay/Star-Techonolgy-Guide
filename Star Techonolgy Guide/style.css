@@ -1,0 +1,209 @@
+/* ---------- Base Layout ---------- */
+body {
+    font-family: "Segoe UI", sans-serif;
+    background-color: #121212;
+    color: #eee;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+header {
+    background-color: #1e1e1e;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    border-bottom: 2px solid #333;
+}
+
+h1 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #9fc1ff;
+}
+
+/* ---------- Top Navigation ---------- */
+#topnav {
+    display: flex;
+    gap: 15px;
+}
+
+#topnav a {
+    color: #9fc1ff;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 6px 10px;
+    border-radius: 5px;
+    transition: background 0.2s;
+}
+
+#topnav a:hover,
+#topnav a.active {
+    background-color: #333;
+}
+
+/* ---------- Main & Footer ---------- */
+main {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+footer {
+    background-color: #1e1e1e;
+    text-align: center;
+    padding: 5px;
+    font-size: 0.8em;
+    border-top: 1px solid #333;
+}
+
+/* ---------- Accordion / Dropdown ---------- */
+.accordion {
+    margin-top: 20px;
+}
+
+.accordion-item {
+    background: #1b1b1b;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #333;
+}
+
+.accordion-header {
+    width: 100%;
+    text-align: left;
+    background-color: #242424;
+    color: #9fc1ff;
+    padding: 10px 15px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    transition: background 0.2s;
+}
+
+.accordion-header:hover {
+    background-color: #333;
+}
+
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    background-color: #181818;
+    padding: 0 15px;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.accordion-content.open {
+    max-height: 400px;
+    padding: 15px;
+}
+
+/* Guides sidebar dropdowns */
+.guides-sidebar {
+    margin-top: 10px;
+}
+
+.guides-sidebar .toggle {
+    cursor: pointer;
+    padding: 8px 12px;
+    background: #1b1b1b;
+    color: #9fc1ff;
+    margin: 6px 0;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+.guides-sidebar .toggle:hover {
+    background: #2a2a2a;
+}
+
+.guides-sidebar .submenu {
+    list-style: none;
+    margin: 6px 0 12px 0;
+    padding-left: 0;
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.28s ease, padding 0.28s ease;
+}
+
+.guides-sidebar .submenu.open {
+    max-height: 1000px; /* large enough for nested lists */
+    padding-left: 8px;
+}
+
+.guides-sidebar .submenu li {
+    margin: 4px 0;
+}
+
+.guides-sidebar .submenu li a {
+    display: inline-block;
+    color: #d7eaff;
+    text-decoration: none;
+    padding: 6px 10px;
+    border-radius: 5px;
+}
+
+.guides-sidebar .submenu li a:hover,
+.guides-sidebar .submenu li a.active {
+    background: #333;
+}
+
+/* Increase indent for nested submenus */
+.guides-sidebar .submenu .submenu {
+    padding-left: 12px;
+}
+
+/* ---------- Guides two-column layout (sidebar left, content right) ---------- */
+.guides-container {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+.guides-sidebar {
+    width: 280px;
+    flex: 0 0 280px;
+    position: sticky; /* keep it visible while scrolling */
+    top: 20px;
+    align-self: flex-start;
+    max-height: calc(100vh - 140px);
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.guides-content {
+    flex: 1;
+    background: #0f0f0f;
+    padding: 16px;
+    border-left: 1px solid #222;
+    border-radius: 8px;
+    min-height: 300px;
+}
+
+.guides-sidebar .submenu.open {
+    /* limit submenu height and allow scrolling inside the sidebar */
+    max-height: calc(100vh - 220px);
+    overflow-y: auto;
+    padding-left: 8px;
+}
+
+/* Responsive: stack columns on small screens */
+@media (max-width: 800px) {
+    .guides-container {
+        flex-direction: column;
+    }
+    .guides-sidebar {
+        position: relative;
+        width: 100%;
+        max-height: none;
+    }
+    .guides-content {
+        border-left: none;
+    }
+}
+

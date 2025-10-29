@@ -1,0 +1,43 @@
+<h2>How to get Hydrogen</h2>
+
+<ol>
+	<li>
+		<h3>Water Electrolysis</h3>
+		<p>You can obtain Hydrogen and Oxygen from electrolyzing water.</p>
+		<!-- Image placeholder for Hydrogen recipe -->
+		<p><img src="hydrogen.png" alt="Hydrogen recipe" style="max-width:220px;display:block;margin:8px 0"></p>
+	</li>
+
+	<li>
+		<h3>Sodium Hydroxide Loop</h3>
+		<p>You can obtain Hydrogen and Oxygen from the Sodium Hydroxide loop.</p>
+		<!-- Image placeholder for Hydrogen recipe -->
+		<p><img src="hydrogen.png" alt="Hydrogen recipe" style="max-width:220px;display:block;margin:8px 0"></p>
+	</li>
+</ol>
+
+<p>See also: <a href="#" id="link-oxygen" data-page="pages/guides/Lines/Chemical Lines/oxygen.html">Oxygen</a></p>
+
+<!-- Inline script: when this fragment is loaded into the guides-content area, allow the Oxygen link to fetch and replace the guides-content -->
+<script>
+	(function () {
+		const oxygenLink = document.getElementById('link-oxygen');
+		if (!oxygenLink) return;
+		oxygenLink.addEventListener('click', async function (e) {
+			e.preventDefault();
+			const page = this.getAttribute('data-page');
+			try {
+				const res = await fetch(page);
+				if (!res.ok) throw new Error('HTTP ' + res.status);
+				const html = await res.text();
+				const contentArea = document.querySelector('.guides-content');
+				if (contentArea) contentArea.innerHTML = html;
+			} catch (err) {
+				const contentArea = document.querySelector('.guides-content');
+				if (contentArea) contentArea.innerHTML = '<p>Error loading Oxygen: ' + (err && err.message ? err.message : err) + '</p>';
+				console.error(err);
+			}
+		});
+	})();
+</script>
+
