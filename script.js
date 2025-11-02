@@ -160,8 +160,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (timeTarget) timeTarget.textContent = sec;
             });
 
-            // empty container and append select only
-            container.innerHTML = '';
+            // Clear existing content but preserve data attributes
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
             container.appendChild(select);
 
             container.dataset.initialized = '1';
