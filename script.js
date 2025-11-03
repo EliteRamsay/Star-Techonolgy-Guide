@@ -141,33 +141,35 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Event listeners for search
-    searchInput.addEventListener('input', () => {
-        const query = searchInput.value;
-        if (query.length < 2) {
-            searchResults.style.display = 'none';
-            return;
-        }
-        
-        const results = performSearch(query);
-        displaySearchResults(results);
-    });
-
-    searchInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
             const query = searchInput.value;
-            if (query.trim()) {
-                // Show search page with all results
-                const results = performSearch(query);
-                mainContent.style.display = 'none';
-                searchPage.style.display = 'block';
-                displaySearchPageResults(results, query);
+            if (query.length < 2) {
+                if (searchResults) searchResults.style.display = 'none';
+                return;
             }
-        }
-    });
+            
+            const results = performSearch(query);
+            displaySearchResults(results);
+        });
+
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const query = searchInput.value;
+                if (query.trim()) {
+                    // Show search page with all results
+                    const results = performSearch(query);
+                    if (mainContent) mainContent.style.display = 'none';
+                    if (searchPage) searchPage.style.display = 'block';
+                    displaySearchPageResults(results, query);
+                }
+            }
+        });
+    }
 
     // Close search results when clicking outside
     document.addEventListener('click', (e) => {
-        if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+        if (searchInput && searchResults && !searchInput.contains(e.target) && !searchResults.contains(e.target)) {
             searchResults.style.display = 'none';
         }
     });
@@ -179,11 +181,16 @@ document.addEventListener("DOMContentLoaded", () => {
             const html = await response.text();
             content.innerHTML = html;
 
+            // Update active state
             navLinks.forEach(a => a.classList.remove("active"));
             if (link) link.classList.add("active");
 
-            setupGuidesSidebar();
-            // initialize any per-recipe electrolyzer controls that may be in the loaded content
+            // Reinitialize any dynamic content
+            if (page.includes('guides.html')) {
+                setupGuidesSidebar();
+            }
+            
+            // Initialize electrolyzer controls
             initElectrolyzerConfigs();
         } catch (err) {
             content.innerHTML = "<p>Error loading page: " + (err && err.message ? err.message : err) + "</p>";
@@ -191,52 +198,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Delegated handler for any links that use data-page (works for "See also" links inside loaded fragments)
-    document.addEventListener('click', async function(e) {
-        const link = e.target.closest('a[data-page]');
-        if (!link) return;
-
-        // If the link is part of the left-hand guides sidebar or the top navigation,
-        // let the existing explicit handlers handle it (they set up proper targets and active classes).
-        const inSidebar = link.closest('.guides-sidebar');
-        const inTopnav = link.closest('#topnav');
-        if (inSidebar || inTopnav) return;
-
-        e.preventDefault();
-
-        // Determine target container: if the clicked link is inside the right-hand guides content, load there;
-        // otherwise load into the main #content area.
-        const insideGuides = link.closest('.guides-content');
-        const target = insideGuides || document.getElementById('content');
-
-        const page = link.getAttribute('data-page');
-        try {
-            // encodeURI to handle spaces and special characters in the path
-            const response = await fetch(encodeURI(page));
-            const html = await response.text();
-            target.innerHTML = html;
-
-            // If the link was part of a submenu, update active classes (best-effort)
-            if (!insideGuides) {
-                const navLinks = document.querySelectorAll('#topnav a');
-                navLinks.forEach(a => a.classList.remove('active'));
-                link.classList.add('active');
-            } else {
-                const itemLinks = document.querySelectorAll('.submenu a');
-                itemLinks.forEach(a => a.classList.remove('active'));
-                link.classList.add('active');
-            }
-                // initialize any per-recipe electrolyzer controls inside the newly-loaded fragment
-                initElectrolyzerConfigs();
-        } catch (err) {
-            console.error('Error loading page (delegated):', err);
-            target.innerHTML = '<p>Error loading page: ' + (err && err.message ? err.message : err) + '</p>';
-        }
-    });
-
-    // Topnav click - FIXED: Make sure this works properly
+    // Topnav click - Fixed to prevent default and use data-page
     navLinks.forEach(link => {
-        if (link.getAttribute('data-page')) { // Only handle navigation links, not empty ones
+        if (link.getAttribute('data-page')) {
             link.addEventListener("click", e => {
                 e.preventDefault();
                 const page = link.getAttribute("data-page");
@@ -244,13 +208,6 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
     });
-
-    // Hash support
-    const hash = window.location.hash.replace("#", "");
-    if (hash) {
-        const link = [...navLinks].find(a => a.getAttribute("href") === "#" + hash);
-        if (link) loadPage(link.getAttribute("data-page"), link);
-    }
 
     // Setup guides nested dropdowns
     function setupGuidesSidebar() {
@@ -262,38 +219,39 @@ document.addEventListener("DOMContentLoaded", () => {
         toggles.forEach(toggle => {
             toggle.addEventListener("click", () => {
                 const submenu = toggle.nextElementSibling;
-                submenu.classList.toggle("open");
+                if (submenu) {
+                    submenu.classList.toggle("open");
+                }
             });
         });
 
         // Load right-hand content dynamically
-        itemLinks.forEach(link => {
-            link.addEventListener("click", async e => {
-                e.preventDefault();
-                const page = link.getAttribute("data-page");
-                try {
-                    const response = await fetch(page);
-                    const html = await response.text();
-                    contentArea.innerHTML = html;
-                    itemLinks.forEach(a => a.classList.remove("active"));
-                    link.classList.add("active");
-                    // initialize any per-recipe electrolyzer controls inside the right-hand content
-                    initElectrolyzerConfigs();
-                } catch (err) {
-                    contentArea.innerHTML = "<p>Error loading guide section: " + (err && err.message ? err.message : err) + "</p>";
-                    console.error(err);
-                }
+        if (itemLinks.length > 0 && contentArea) {
+            itemLinks.forEach(link => {
+                link.addEventListener("click", async e => {
+                    e.preventDefault();
+                    const page = link.getAttribute("data-page");
+                    try {
+                        const response = await fetch(page);
+                        const html = await response.text();
+                        contentArea.innerHTML = html;
+                        itemLinks.forEach(a => a.classList.remove("active"));
+                        link.classList.add("active");
+                        initElectrolyzerConfigs();
+                    } catch (err) {
+                        contentArea.innerHTML = "<p>Error loading guide section: " + (err && err.message ? err.message : err) + "</p>";
+                        console.error(err);
+                    }
+                });
             });
-        });
+        }
     }
-    
+
     // Initialize the page
     setupGuidesSidebar();
 });
 
 // Initialize electrolyte/electrolyzer controls for recipes.
-// Pages should include a container with class "electrolyzer-config" and a data-tiers attribute
-// containing a JSON array like: [{"tier":"LV","sec":75},{"tier":"MV","sec":60}]
 function initElectrolyzerConfigs() {
     const containers = document.querySelectorAll('.electrolyzer-config');
     containers.forEach(container => {
