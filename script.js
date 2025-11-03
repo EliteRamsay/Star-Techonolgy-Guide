@@ -137,9 +137,7 @@ document.addEventListener("DOMContentLoaded", () => {
         searchInput.value = '';
         
         // Load the page using your existing navigation system
-        const fakeLink = document.createElement('a');
-        fakeLink.setAttribute('data-page', result.url);
-        fakeLink.click();
+        loadPage(result.url);
     }
 
     // Event listeners for search
@@ -236,13 +234,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Topnav click
+    // Topnav click - FIXED: Make sure this works properly
     navLinks.forEach(link => {
-        link.addEventListener("click", e => {
-            e.preventDefault();
-            const page = link.getAttribute("data-page");
-            loadPage(page, link);
-        });
+        if (link.getAttribute('data-page')) { // Only handle navigation links, not empty ones
+            link.addEventListener("click", e => {
+                e.preventDefault();
+                const page = link.getAttribute("data-page");
+                loadPage(page, link);
+            });
+        }
     });
 
     // Hash support
@@ -286,6 +286,9 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
     }
+    
+    // Initialize the page
+    setupGuidesSidebar();
 });
 
 // Initialize electrolyte/electrolyzer controls for recipes.
