@@ -7,6 +7,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const searchResultsContainer = document.getElementById('search-results-container');
     const mainContent = document.getElementById('content');
 
+    // Store sidebar state
+    let sidebarState = {
+        openMenus: new Set()
+    };
+
     // Auto-generate search index from navigation
     function generateSearchIndex() {
         const index = [];
@@ -179,26 +184,136 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const response = await fetch(page);
             const html = await response.text();
-            content.innerHTML = html;
-
+            
             // Update active state
             navLinks.forEach(a => a.classList.remove("active"));
             if (link) link.classList.add("active");
 
-            // Reinitialize any dynamic content
-            if (page.includes('guides.html')) {
-                setupGuidesSidebar();
+            // Check if this is a guide page (any page under guides/)
+            if (page.includes('guides/') || page === 'pages/guides.html') {
+                // Save current sidebar state before replacing content
+                saveSidebarState();
+                
+                // Wrap guide content in the sidebar layout
+                const sidebarHtml = await fetch('pages/guides.html');
+                const sidebarContent = await sidebarHtml.text();
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = sidebarContent;
+                
+                const guidesSidebar = tempDiv.querySelector('.guides-sidebar');
+                const guidesContentArea = tempDiv.querySelector('.guides-content');
+                
+                if (guidesSidebar && guidesContentArea) {
+                    // Create the layout container
+                    const layoutContainer = document.createElement('div');
+                    layoutContainer.className = 'guides-layout';
+                    
+                    // Add sidebar
+                    layoutContainer.appendChild(guidesSidebar.cloneNode(true));
+                    
+                    // Create content area and load the actual page content
+                    const contentArea = document.createElement('div');
+                    contentArea.className = 'guides-content';
+                    contentArea.innerHTML = html;
+                    
+                    layoutContainer.appendChild(contentArea);
+                    content.innerHTML = '';
+                    content.appendChild(layoutContainer);
+                    
+                    // Auto-expand and highlight the current page in sidebar
+                    setTimeout(() => {
+                        restoreSidebarState();
+                        highlightCurrentPageInSidebar(page);
+                    }, 10);
+                } else {
+                    // Fallback: just show the content
+                    content.innerHTML = html;
+                }
+            } else {
+                // Regular page (README, Getting Started)
+                content.innerHTML = html;
             }
+
+            // Reinitialize any dynamic content
+            setupGuidesSidebar();
             
             // Initialize electrolyzer controls
             initElectrolyzerConfigs();
+            
+            // Re-attach event listeners to content links
+            attachContentLinkListeners();
         } catch (err) {
             content.innerHTML = "<p>Error loading page: " + (err && err.message ? err.message : err) + "</p>";
             console.error(err);
         }
     }
 
-    // Topnav click - Fixed to prevent default and use data-page
+    // Save current sidebar state (which menus are open)
+    function saveSidebarState() {
+        const openMenus = document.querySelectorAll('.guides-sidebar .submenu.open');
+        sidebarState.openMenus.clear();
+        
+        openMenus.forEach(menu => {
+            const toggle = menu.previousElementSibling;
+            if (toggle && toggle.classList.contains('toggle')) {
+                sidebarState.openMenus.add(toggle.textContent.trim());
+            }
+        });
+    }
+
+    // Restore sidebar state after navigation
+    function restoreSidebarState() {
+        const toggles = document.querySelectorAll('.guides-sidebar .toggle');
+        toggles.forEach(toggle => {
+            if (sidebarState.openMenus.has(toggle.textContent.trim())) {
+                const submenu = toggle.nextElementSibling;
+                if (submenu && submenu.classList.contains('submenu')) {
+                    submenu.classList.add('open');
+                }
+            }
+        });
+    }
+
+    // Auto-expand sidebar and highlight current page
+    function highlightCurrentPageInSidebar(currentPage) {
+        // Clear all active states first
+        const allLinks = document.querySelectorAll('.guides-sidebar a');
+        allLinks.forEach(link => link.classList.remove('active'));
+        
+        // Find the link that matches the current page
+        const currentLink = document.querySelector(`.guides-sidebar a[data-page="${currentPage}"]`);
+        
+        if (currentLink) {
+            // Add active class to current link
+            currentLink.classList.add('active');
+            
+            // Auto-expand all parent dropdowns
+            let parentElement = currentLink.closest('.submenu');
+            while (parentElement) {
+                const toggle = parentElement.previousElementSibling;
+                if (toggle && toggle.classList.contains('toggle')) {
+                    parentElement.classList.add('open');
+                    // Also add this to saved state so it stays open
+                    sidebarState.openMenus.add(toggle.textContent.trim());
+                }
+                parentElement = parentElement.parentElement.closest('.submenu');
+            }
+        }
+    }
+
+    // Handle links inside loaded content (like in oxygen.html)
+    function attachContentLinkListeners() {
+        const contentLinks = content.querySelectorAll('a[data-page]');
+        contentLinks.forEach(link => {
+            link.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const page = link.getAttribute('data-page');
+                loadPage(page);
+            });
+        });
+    }
+
+    // Topnav click
     navLinks.forEach(link => {
         if (link.getAttribute('data-page')) {
             link.addEventListener("click", e => {
@@ -217,29 +332,69 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Dropdown open/close
         toggles.forEach(toggle => {
+            // Remove any existing listeners to prevent duplicates
+            toggle.replaceWith(toggle.cloneNode(true));
+        });
+
+        // Re-attach listeners to the new toggle elements
+        const newToggles = document.querySelectorAll(".toggle");
+        newToggles.forEach(toggle => {
             toggle.addEventListener("click", () => {
                 const submenu = toggle.nextElementSibling;
                 if (submenu) {
                     submenu.classList.toggle("open");
+                    
+                    // Update saved state
+                    if (submenu.classList.contains('open')) {
+                        sidebarState.openMenus.add(toggle.textContent.trim());
+                    } else {
+                        sidebarState.openMenus.delete(toggle.textContent.trim());
+                    }
                 }
             });
         });
 
-        // Load right-hand content dynamically
-        if (itemLinks.length > 0 && contentArea) {
+        // Load right-hand content dynamically for sidebar links
+        if (itemLinks.length > 0) {
             itemLinks.forEach(link => {
+                // Remove any existing listeners to prevent duplicates
+                link.replaceWith(link.cloneNode(true));
+            });
+
+            // Re-attach listeners to the new link elements
+            const newItemLinks = document.querySelectorAll(".submenu a");
+            newItemLinks.forEach(link => {
                 link.addEventListener("click", async e => {
                     e.preventDefault();
                     const page = link.getAttribute("data-page");
                     try {
+                        // Save sidebar state before navigation
+                        saveSidebarState();
+                        
                         const response = await fetch(page);
                         const html = await response.text();
-                        contentArea.innerHTML = html;
-                        itemLinks.forEach(a => a.classList.remove("active"));
-                        link.classList.add("active");
-                        initElectrolyzerConfigs();
+                        
+                        // Update the content area
+                        if (contentArea) {
+                            contentArea.innerHTML = html;
+                            newItemLinks.forEach(a => a.classList.remove("active"));
+                            link.classList.add("active");
+                            initElectrolyzerConfigs();
+                            attachContentLinkListeners();
+                            
+                            // Auto-expand and highlight for sidebar links too
+                            setTimeout(() => {
+                                restoreSidebarState();
+                                highlightCurrentPageInSidebar(page);
+                            }, 10);
+                        } else {
+                            // If no content area exists, load the page normally
+                            loadPage(page);
+                        }
                     } catch (err) {
-                        contentArea.innerHTML = "<p>Error loading guide section: " + (err && err.message ? err.message : err) + "</p>";
+                        if (contentArea) {
+                            contentArea.innerHTML = "<p>Error loading guide section: " + (err && err.message ? err.message : err) + "</p>";
+                        }
                         console.error(err);
                     }
                 });
@@ -249,6 +404,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Initialize the page
     setupGuidesSidebar();
+    attachContentLinkListeners();
 });
 
 // Initialize electrolyte/electrolyzer controls for recipes.
