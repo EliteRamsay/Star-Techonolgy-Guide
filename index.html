@@ -22,8 +22,17 @@
     </header>
 
     <main id="content">
-        <p>Welcome to the <strong>Star Technology Wiki!</strong><br>
-        Use the navigation bar above to explore pages.</p>
+        <h2>Getting Started</h2>
+        <p>Welcome to <strong>Star Technology</strong>! This section will guide you through the basics.</p>
+
+        <ol>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+        </ol>
+
+        <p>For more information look into guides/progression/The Chapater Your In</p>
     </main>
     
     <div id="search-page">
@@ -36,6 +45,31 @@
         <p>Star Technology Modpack © 2025</p>
     </footer>
 
+     <script>
+        // Save current hash before page unload
+        window.addEventListener('beforeunload', function() {
+            if (window.location.hash) {
+                sessionStorage.setItem('lastHash', window.location.hash);
+            }
+        });
+
+        // Restore hash on page load
+        window.addEventListener('load', function() {
+            const lastHash = sessionStorage.getItem('lastHash');
+            const currentHash = window.location.hash;
+            
+            // If there's no hash but we have a saved one, restore it
+            if (!currentHash && lastHash) {
+                window.location.hash = lastHash;
+            }
+            // If there's no hash at all, set default
+            else if (!currentHash && !lastHash) {
+                window.location.hash = '#pages/getting-started.html';
+            }
+            // Clear the saved hash
+            sessionStorage.removeItem('lastHash');
+        });
+    </script>
     <script src="script.js"></script>
 </body>
 </html>
