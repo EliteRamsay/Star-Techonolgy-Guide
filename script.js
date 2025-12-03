@@ -181,7 +181,14 @@ document.addEventListener("DOMContentLoaded", () => {
             if (page.includes('guides/') || page === 'pages/guides.html') {
                 await loadGuidePage(page, html);
             } else {
-                content.innerHTML = html;
+                // Create a wrapper for regular content pages
+                const contentWrapper = document.createElement('div');
+                contentWrapper.className = 'content';
+                contentWrapper.innerHTML = html;
+                
+                // Clear and set content
+                content.innerHTML = '';
+                content.appendChild(contentWrapper);
             }
 
             // Initialize components
