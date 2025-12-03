@@ -1,10 +1,49 @@
 <h2>README</h2>
-<p>This wiki documents the <strong>Star Technology</strong> modpack for Minecraft.</p>
+<p>This wiki documents the <strong>Star Technology</strong> modpack for Minecraft - a project that's been my passion for the last few months.</p>
 <p>It includes detailed information about gameplay systems, machines, ores, and mod integration.</p>
-
 <p>Use the top navigation bar to explore the wiki:</p>
 <ul>
-    <li><strong>README</strong> – Overview of the project</li>
-    <li><strong>Getting Started</strong> – Learn how to begin your journey</li>
-    <li><strong>Guides</strong> – Explore in-depth topics and gameplay tips</li>
+    <li><strong>README</strong>: Overview of the wiki and project details</li>
+    <li><strong>Getting Started</strong>: Instructions for installing the modpack and starting a new world</li>
+    <li><strong>Guides</strong>: In-depth articles on various gameplay mechanics, organized into categories</li>
 </ul>
+
+<hr>
+
+<h3>Part 1: Design and Implementation</h3>
+
+<p>When I started designing this wiki, I wanted to create something that I would use. The biggest challenge was organizing information from a complex modpack with hundreds of interconnected systems. I decided on a single-page application structure because I wanted users to have a seamless experience - no waiting for pages to reload when they're in the middle of gameplay and need quick information.</p>
+
+<p>The content is structured hierarchically with three main sections. The "Getting Started" section welcomes new players with installation guides, while the "Guides" section contains the meat of the wiki, organized into expandable categories. What I'm most proud of is the dynamic loading system - all pages are individual HTML files that load instantly into the main content area without refreshing the entire page. This was particularly important for the guide pages, where I wanted users to navigate between related topics quickly.</p>
+
+<p>For interactive components, JavaScript drives everything. The expandable sidebar menus in the Guides section use event listeners to toggle visibility while maintaining their open/closed state as users navigate. The search functionality was a complex but rewarding feature - it dynamically indexes all navigation links and provides real-time results as you type. One of my favorite widgets is the electrolyzer configuration system on the chemical pages, where users can select different machine tiers (LV, MV, HV) and instantly see how processing times change.</p>
+
+<p>Visually, I went with a dark theme because it's easier on the eyes during long gaming sessions. I added subtle animations for dropdown menus and search results to make interactions feel polished. The sticky sidebar in the Guides section keeps navigation always accessible, and active state indicators help users always know where they are in the wiki.</p>
+
+<hr>
+
+<h3>Part 2: Key Features</h3>
+
+<ul>
+    <li><strong>Single-Page Application</strong>: All navigation happens without page reloads for instant content switching</li>
+    <li><strong>Dynamic Content Loading</strong>: Pages load asynchronously using JavaScript fetch() API</li>
+    <li><strong>Nested Navigation System</strong>: Expandable/collapsible sidebar menus with multiple hierarchy levels</li>
+    <li><strong>Persistent UI State</strong>: Remembers which menus are open and current page location</li>
+    <li><strong>Real-time Search</strong>: Instant search across all content with dropdown results and dedicated search page</li>
+    <li><strong>Interactive Widgets</strong>: Dynamic elements like the electrolyzer tier selector that updates recipe times</li>
+    <li><strong>Cross-Page Linking</strong>: Internal links between related content for easy navigation</li>
+    <li><strong>Error Handling</strong>: User-friendly error messages for failed page loads or missing content</li>
+    <li><strong>Modern Dark Theme</strong>: Custom color scheme optimized for readability during extended use</li>
+</ul>
+
+<hr>
+
+<h3>Part 3: Project Reflection</h3>
+
+<p>This project taught me how most wiki's work. On the technical side, I learn how client-side routing worked.</p>
+
+<p>For project management, I learned the importance of starting simple. My first version was just three basic HTML pages. Only after those worked did I add the sidebar navigation, then the search functionality, then the interactive widgets. This incremental approach saved me from getting overwhelmed. I also learned to document my code better - there were times I'd come back to something I wrote weeks earlier and struggle to remember how it worked!</p>
+
+<p>Time management was crucial with this project. The modpack actually updated three times while I was building the wiki, which forced me to adapt my plans. I learned to prioritize core features first (navigation, basic pages) and save enhancements (animations, search improvements) for later. The iterative development approach - build, test, refine - became my workflow.</p>
+
+<p>The most valuable lesson was about problem-solving. Each feature - from the dynamic page loading to the persistent sidebar state - started as a problem that seemed overwhelming. By breaking them down into smaller steps and solving each piece methodically, what seemed impossible became manageable. This project has given me confidence that I can build complex web applications from scratch, and more importantly, it's shown me that the process of creating something useful for others is incredibly rewarding.</p>
